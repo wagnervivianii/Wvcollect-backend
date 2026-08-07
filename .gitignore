@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# PyCharm
+.idea/
+
+# Tests / cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__
+
+# Logs
+*.log
+
+# Local files
+uploads/
+storage/
+tmp/
