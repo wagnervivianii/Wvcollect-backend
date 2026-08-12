@@ -9,6 +9,7 @@ from app.db.base import Base
 # Importaremos os models pelo pacote.
 # Conforme criarmos cada model, ele será registrado no Base.metadata.
 import app.models  # noqa: F401
+import app.modules.cartas.models  # noqa: F401
 
 
 config = context.config
