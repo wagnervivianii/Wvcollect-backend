@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.api.admin import router as admin_router
 from app.api.auth import router as auth_router
 from app.api.fotos import router as fotos_router
 from app.api.me import router as me_router
@@ -25,6 +26,7 @@ app.include_router(pesquisas_router)
 app.include_router(perguntas_router)
 app.include_router(fotos_router)
 app.include_router(respostas_router)
+app.include_router(admin_router)
 
 
 @app.get("/")
