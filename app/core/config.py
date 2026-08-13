@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_minutes: int = 720
 
+    wvcollect_admin_user: str = ""
+    wvcollect_admin_password: str = ""
+
     db_host: str = "127.0.0.1"
     db_port: int = 5432
     db_name: str = "wvcollect"

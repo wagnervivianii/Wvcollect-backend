@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import secrets
 
 from fastapi import Depends, HTTPException, status
@@ -8,6 +7,8 @@ from fastapi.security import (
     HTTPBasic,
     HTTPBasicCredentials,
 )
+
+from app.core.config import settings
 
 
 security = HTTPBasic()
@@ -19,20 +20,13 @@ def require_admin(
     """
     Autenticação administrativa compartilhada.
 
-    Variáveis obrigatórias:
+    Configuração carregada pelo Settings:
         WVCOLLECT_ADMIN_USER
         WVCOLLECT_ADMIN_PASSWORD
     """
 
-    expected_user = os.getenv(
-        "WVCOLLECT_ADMIN_USER",
-        "",
-    ).strip()
-
-    expected_password = os.getenv(
-        "WVCOLLECT_ADMIN_PASSWORD",
-        "",
-    )
+    expected_user = settings.wvcollect_admin_user.strip()
+    expected_password = settings.wvcollect_admin_password
 
     if not expected_user or not expected_password:
         raise HTTPException(
