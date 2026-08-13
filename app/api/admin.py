@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import os
-import secrets
 import uuid
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy import text
 
+from app.core.admin_auth import require_admin
 from app.db.session import engine
 
 
@@ -19,45 +18,6 @@ router = APIRouter(
     tags=["admin"],
 )
 
-security = HTTPBasic()
-
-
-def _admin_credentials(
-    credentials: HTTPBasicCredentials = Depends(security),
-) -> str:
-    """
-    Autenticação independente para o painel web.
-
-    Variáveis obrigatórias no .env de produção:
-        WVCOLLECT_ADMIN_USER
-        WVCOLLECT_ADMIN_PASSWORD
-    """
-    expected_user = os.getenv("WVCOLLECT_ADMIN_USER", "").strip()
-    expected_password = os.getenv("WVCOLLECT_ADMIN_PASSWORD", "")
-
-    if not expected_user or not expected_password:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Admin web não configurado.",
-        )
-
-    user_ok = secrets.compare_digest(
-        credentials.username.encode("utf-8"),
-        expected_user.encode("utf-8"),
-    )
-    password_ok = secrets.compare_digest(
-        credentials.password.encode("utf-8"),
-        expected_password.encode("utf-8"),
-    )
-
-    if not (user_ok and password_ok):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciais administrativas inválidas.",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-
-    return expected_user
 
 
 def _mask_cpf(cpf: str | None) -> str | None:
@@ -77,7 +37,7 @@ def _row_dict(row: Any) -> dict[str, Any]:
 
 @router.get("/ping")
 def admin_ping(
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     return {
         "status": "ok",
@@ -87,7 +47,7 @@ def admin_ping(
 
 @router.get("/resumo")
 def resumo_operacional(
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     sql = text(
         """
@@ -164,7 +124,7 @@ def resumo_operacional(
 
 @router.get("/promotores")
 def listar_promotores(
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     sql = text(
         """
@@ -261,7 +221,7 @@ def listar_promotores(
 def listar_roteiros(
     promotor: str | None = Query(default=None, max_length=160),
     situacao: str | None = Query(default=None, max_length=30),
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     sql = text(
         """
@@ -371,7 +331,7 @@ def listar_roteiros(
 @router.get("/pesquisas/{id_pesquisa}")
 def detalhe_pesquisa(
     id_pesquisa: uuid.UUID,
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     pesquisa_sql = text(
         """
@@ -567,7 +527,7 @@ def _resolve_photo_path(storage_key: str) -> Path | None:
 @router.get("/fotos/{id_foto}/arquivo")
 def obter_arquivo_foto(
     id_foto: uuid.UUID,
-    _: str = Depends(_admin_credentials),
+    _: str = Depends(require_admin),
 ):
     sql = text(
         """
