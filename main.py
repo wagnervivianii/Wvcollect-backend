@@ -11,6 +11,7 @@ from app.api.pesquisas import router as pesquisas_router
 from app.api.respostas import router as respostas_router
 from app.core.config import settings
 from app.db.session import engine
+from app.modules.cartas.api import router as cartas_router
 
 
 app = FastAPI(
@@ -27,6 +28,7 @@ app.include_router(perguntas_router)
 app.include_router(fotos_router)
 app.include_router(respostas_router)
 app.include_router(admin_router)
+app.include_router(cartas_router)
 
 
 @app.get("/")
