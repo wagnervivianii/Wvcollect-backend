@@ -66,6 +66,7 @@ class CartaModeloRepository:
         self,
         *,
         id_modelo: uuid.UUID,
+        id_versao: uuid.UUID,
         numero_versao: int,
         nome_arquivo_original: str,
         storage_key: str,
@@ -74,6 +75,7 @@ class CartaModeloRepository:
         hash_sha256: str | None,
     ) -> CartaModeloVersao:
         versao = CartaModeloVersao(
+            id_versao=id_versao,
             id_modelo=id_modelo,
             numero_versao=numero_versao,
             nome_arquivo_original=nome_arquivo_original,
