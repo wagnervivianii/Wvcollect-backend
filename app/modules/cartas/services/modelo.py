@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -42,6 +43,34 @@ class CartaModeloConflictError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class CartaModeloRedeResult:
+    rede: str
+    rede_normalizada: str
+
+
+@dataclass(frozen=True)
+class CartaModeloVersaoResult:
+    id_versao: uuid.UUID
+    numero_versao: int
+    nome_arquivo_original: str
+    mime_type: str | None
+    criado_em: datetime
+
+
+@dataclass(frozen=True)
+class CartaModeloListItem:
+    id_modelo: uuid.UUID
+    nome: str
+    tipo: str
+    granularidade: str
+    ativo: bool
+    criado_em: datetime
+    atualizado_em: datetime
+    redes: list[CartaModeloRedeResult]
+    versao_ativa: CartaModeloVersaoResult | None
+
+
+@dataclass(frozen=True)
 class CartaModeloCreationResult:
     id_modelo: uuid.UUID
     id_versao: uuid.UUID
@@ -66,6 +95,59 @@ class CartaModeloService:
         self.db = db
         self.repository = CartaModeloRepository(db)
         self.storage = storage or CartaLocalStorage()
+
+    def list_active_models(
+        self,
+    ) -> list[CartaModeloListItem]:
+        modelos = self.repository.list_active_models()
+
+        result: list[CartaModeloListItem] = []
+
+        for modelo in modelos:
+            redes = self.repository.list_networks(
+                modelo.id_modelo
+            )
+
+            versao = self.repository.get_active_version(
+                modelo.id_modelo
+            )
+
+            if versao is None:
+                versao_result = None
+            else:
+                versao_result = CartaModeloVersaoResult(
+                    id_versao=versao.id_versao,
+                    numero_versao=versao.numero_versao,
+                    nome_arquivo_original=(
+                        versao.nome_arquivo_original
+                    ),
+                    mime_type=versao.mime_type,
+                    criado_em=versao.criado_em,
+                )
+
+            result.append(
+                CartaModeloListItem(
+                    id_modelo=modelo.id_modelo,
+                    nome=modelo.nome,
+                    tipo=modelo.tipo,
+                    granularidade=modelo.granularidade,
+                    ativo=modelo.ativo,
+                    criado_em=modelo.criado_em,
+                    atualizado_em=modelo.atualizado_em,
+                    redes=[
+                        CartaModeloRedeResult(
+                            rede=rede.rede,
+                            rede_normalizada=(
+                                rede.rede_normalizada
+                            ),
+                        )
+                        for rede in redes
+                    ],
+                    versao_ativa=versao_result,
+                )
+            )
+
+        return result
 
     def create_model(
         self,

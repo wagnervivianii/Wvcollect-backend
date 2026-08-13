@@ -114,6 +114,25 @@ class CartaModeloRepository:
             self.db.scalars(statement).all()
         )
 
+    def list_networks(
+        self,
+        id_modelo: uuid.UUID,
+    ) -> list[CartaModeloRede]:
+        statement = (
+            select(CartaModeloRede)
+            .where(
+                CartaModeloRede.id_modelo
+                == id_modelo
+            )
+            .order_by(
+                CartaModeloRede.rede
+            )
+        )
+
+        return list(
+            self.db.scalars(statement).all()
+        )
+
     def get_active_version(
         self,
         id_modelo: uuid.UUID,
